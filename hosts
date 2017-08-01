@@ -1,0 +1,9 @@
+[concourse]
+localhost ansible_host=127.0.0.1
+
+[concourse-web]
+#localhost ansible_host=127.0.0.1 concourse_node_web=True 
+localhost ansible_host=127.0.0.1
+
+[concourse-worker]
+localhost ansible_host=127.0.0.1
