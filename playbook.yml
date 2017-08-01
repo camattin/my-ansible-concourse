@@ -3,56 +3,18 @@
   remote_user: vsadmin
   become: yes
   vars:
-    CONCOURSE_BASIC_AUTH_USERNAME: myadmin
-    CONCOURSE_BASIC_AUTH_PASSWORD: mypasswd
-  tasks:
-  - name: pre Install demo packages ubuntu
-    apt:
-      name="{{item}}"
-      update_cache=yes
-      cache_valid_time=3600
-    with_items:
-      - "git"
-      - "postgresql"
-      - "python-psycopg2"
-      - "vim"
-      - "curl"
-    # this should fail if no match for postgreql path or more than on match
-  - name: find postgresql path
-    find:
-      paths="/etc/postgresql/"
-      patterns="9.*"
-      file_type="directory"
-    register: find_reg
-    failed_when: find_reg.matched != 1
-
-  - name: pre Configure postgresql hba.conf
-    lineinfile:
-      dest="{{ find_reg.files[0].path }}/main/pg_hba.conf"
-      insertafter="EOF"
-      line="host  all  all 0.0.0.0/0 md5"
-    register: postgresql_conf
-
-  - name: pre Service postgresql
-    service:
-      name=postgresql
-      state=restarted
-    when: postgresql_conf | changed
-
-  - name: pre Create postgresql db
-    postgresql_db:
-      name=concourse
-    become_user: postgres
-  - name: pre Create postgresql user
-    postgresql_user:
-      db=concourse
-      name=concourseci
-      password=conpass
-    become_user: postgres
-
-  - name: pre Service postgresql
-    service:
-      name=postgresql
-      state=started
+    concourseci_version: "v3.3.3"
+    concourse_web_options:
+      CONCOURSE_BASIC_AUTH_USERNAME: myadmin
+      CONCOURSE_BASIC_AUTH_PASSWORD: mypasswd
+      CONCOURSE_BIND_IP: "0.0.0.0"
+      CONCOURSE_TSA_HOST: "{{ groups[concourseci_web_group][0] }}"
+      CONCOURSE_TSA_BIND_IP: "0.0.0.0"
+      CONCOURSE_TSA_BIND_PORT: "2222"
+      CONCOURSE_TSA_AUTHORIZED_KEYS: "{{ concourseci_ssh_dir }}/tsa_authorization"
+      CONCOURSE_TSA_HOST_KEY: "{{ concourseci_ssh_dir }}/tsa"
+      CONCOURSE_SESSION_SIGNING_KEY: "{{ concourseci_ssh_dir }}/session_signing"
+      CONCOURSE_POSTGRES_DATA_SOURCE: "postgres://concourseci:conpass@127.0.0.1/concourse?sslmode=disable"
   roles:
-    - ahelal.concourse
+    - postgres
+    - concourse
