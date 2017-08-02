@@ -18,8 +18,15 @@
       CONCOURSE_TSA_HOST_KEY: "{{ concourseci_ssh_dir }}/tsa"
       CONCOURSE_SESSION_SIGNING_KEY: "{{ concourseci_ssh_dir }}/session_signing"
       CONCOURSE_POSTGRES_DATA_SOURCE: "postgres://concourseci:conpass@127.0.0.1/concourse?sslmode=disable"
+      CONCOURSE_EXTERNAL_URL: "http://CHANGEME"
   roles:
     - consul
     - vault
     - postgres
     - concourse
+  tasks:
+  - copy:
+      src: "{{ concourseci_bin_dir }}/fly"
+      dest: /usr/local/bin/fly
+      remote_src: true
+      mode: 0755
